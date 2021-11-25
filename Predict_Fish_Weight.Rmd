@@ -1,7 +1,7 @@
 ---
 title: "Weight of Fish"
-author: "Your Name"
-date: "Year 2020"
+author: "Genevieve Metcalf"
+date: "11/24/21"
 output: 
   html_document:
     number_sections: true
