@@ -23,8 +23,8 @@ Fish=read.csv("Fish.csv")
 
 <!--In this section you explain what you are trying to show.  Where did the data come from?  What is the research or other question you are trying to answer?!-->
 
-## Build the best regression model you can that predicts the weight of perch
-## Using only two predictor variables  
+ ## Build the best regression model you can that predicts the weight of perch  
+ ## Using only two predictor variables    
 
 
 # Methods
@@ -37,8 +37,6 @@ Subset of fish that contains the species I want to analyze, then I will look at 
 Perch=filter(Fish,Species=="Perch")
 ```
 
-
-
 # Results
 
 <!--Divide this section into two sub-sections:  One for your descriptive  results and one for your inferential results.!-->
@@ -49,18 +47,86 @@ Perch=filter(Fish,Species=="Perch")
 
 <!--Graphical results here.  Make sure to show your code.  Provide appropriate labels for axes, giving units if possible, and provide a good title for the graph, too.  Use the graphical results to describe the patterns if any that exist in the data as focused toward the research question!-->
 
+```{r}
+basicNN <- ggplot(Perch,aes(y=Weight,x=Length1))
+```
+
+##Now add in scatterplot
+
+```{r}
+basicNN + geom_point()
+```
+
+```{r}
+basicNN + geom_point() + geom_smooth(method=lm) 
+```
+
+Both graphs show that as length increases weight increases as well. This looks like a straight line is not a good fit becuase most of the points don't fall evenly around on the blue line.
+
 ### Numerical Descriptive Results
 
 <!--Numerical results go here. Use the numerical results to describe the patterns if any that exist in the data as focused toward the research question!-->
+
+```{r}
+library(leaps)
+regsubsets.out <-
+    regsubsets(Weight ~ .,
+               data = select (Perch, -Species),
+               nbest = 1,       # 1 best model for each number of predictors
+               nvmax = NULL,    # NULL for no limit on number of variables
+               force.in = NULL, force.out = NULL,
+               method = "exhaustive")
+
+summary.out <- summary(regsubsets.out)
+as.data.frame(summary.out$outmat)
+library(car)
+subsets(regsubsets.out,statistic="adjr2",legend="bottomright",main="Adjusted R^2")
+```
+
+The graph shows the y axis is adjusted R squared and the x axis is the number of variables used in the linear fit. The graph shows that the best fit using two variables is Height and Width; subset 2 is the best fit.
+
+```{r}
+which.max(summary.out$adjr2)
+```
+```{r}
+summary.out$which[2,]
+```
+
+The summary shows that which two variables are best, which is Height and Width.
+
+
+```{r}
+best.model <- lm(Weight~Height+Width,data=Perch)
+summary(best.model)
+```
+
+We made a linear model based on Height and Width, this shows that the prediction for Weight=-536 + 74.77 * Height + 69.62 * Width.
+
+This equation is the best fit predicting the weight of the perch using the two variables, width and height.
+
+```{r}
+fullup=lm(Weight~.,data= select (Perch, -Species))
+```
+
 
 ## Inferential Results
 
 <!--State hypothesis clearly.  Make sure your discussion of the inferential test covers all the aspects that the test output produces, such as test statistic, p-value etc.  Make a decision about the null hypothesis, explain the assumptions on which the selected test/procedure was based, and why the chosen procedure satisfys the assumptions and is appropriate to answer the research question!-->
 
+$H_0$:there is no difference when predicting models 1 and 2 when predicting the Weight of the fish (Perch)  
+$H_A$:there is a difference when predicting models 1 and 2 when predicting the Weight of the fish (Perch) 
+
+```{r}
+anova(fullup,best.model)
+```
+
+This analysis of Variance Table basically shows that model 1 is slightly better becuase it has a smaller residual sum of squares.
 
 # Discussion and Conclusion
 
 <!--Discussion and conclusion here.  If you found a relationship be sure to consider whether the relationship occurs because one of the variavbles causes the other, or whether they perhasps are related for some other reason.  Watch the chapter 6 videos from the GeorgeTown videos collection.!-->
+
+We fail to reject the null hypothesis because the P value is high at 0.879. We concluded that Height and Width are the best two variables when predicting weight if just using two variables.
 
 ## Build the best regression model you can that predicts the weight of perch
 ## Using only two predictor variables  
